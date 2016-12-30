@@ -29,17 +29,17 @@ namespace callbacks {
 		}
 	}
 
-	void onError(const sf::Socket::Status& status, std::ostream& out) {
+	void onError(const sfcb::SocketStatus& status, std::ostream& out) {
 		out << "Socket: ";
 
 		switch (status) {
-		case sf::Socket::Disconnected:
+		case sfcb::SocketStatus::Disconnected:
 			out << "disconnected";
 			break;
-		case sf::Socket::Error:
+		case sfcb::SocketStatus::Error:
 			out << "error";
 			break;
-		case sf::Socket::NotReady:
+		case sfcb::SocketStatus::NotReady:
 			out << "not ready";
 			break;
 		default:

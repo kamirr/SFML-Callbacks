@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "NetworkBase.hpp"
 #include "Callback.hpp"
 
 namespace sfcb {
@@ -14,7 +15,7 @@ namespace sfcb {
 	: public sf::NonCopyable {
 	private:
 		Callback<const std::vector<sf::Int8>&> m_onDataReceived;
-		Callback<sf::Socket::Status> m_onError;
+		Callback<SocketStatus> m_onError;
 		Callback<TcpSocket&> m_onConnected;
 
 		static std::vector<TcpSocket*> sockets;
@@ -49,8 +50,8 @@ namespace sfcb {
 
 			this->m_connecting = true;
 
-			if(status != sf::Socket::Done
-			&& status != sf::Socket::NotReady)
+			if(status != SocketStatus::Done
+			&& status != SocketStatus::NotReady)
 				this->m_onError(status);
 		}
 
@@ -62,7 +63,7 @@ namespace sfcb {
 			size_t sent;
 			auto status = this->m_socket.send(buffer.data(), buffer.size(), sent);
 
-			if(status != sf::Socket::Done) {
+			if(status != SocketStatus::Done) {
 				this->m_onError(status);
 			}
 
@@ -89,7 +90,7 @@ namespace sfcb {
 				auto& socket = ptr->m_socket;
 
 				std::vector<sf::Int8> data;
-				sf::Socket::Status status;
+				SocketStatus status;
 
 				do {
 					char buffer[1024];
@@ -100,11 +101,11 @@ namespace sfcb {
 					for(auto i = 0u; i < received; ++i) {
 						data.push_back(buffer[i]);
 					}
-				} while(status == sf::Socket::Partial);
+				} while(status == SocketStatus::Partial);
 
-				if(status == sf::Socket::Done) {
+				if(status == SocketStatus::Done) {
 					ptr->m_onDataReceived(data);
-				} else if(status != sf::Socket::NotReady) {
+				} else if(status != SocketStatus::NotReady) {
 					ptr->m_onError(status);
 				}
 
