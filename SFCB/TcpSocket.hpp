@@ -14,7 +14,7 @@ namespace sfcb {
 	class TcpSocket
 	: public sf::NonCopyable {
 	private:
-		Callback<const std::vector<sf::Int8>&> m_onDataReceived;
+		Callback<const buffer_t&> m_onDataReceived;
 		Callback<SocketStatus> m_onError;
 		Callback<TcpSocket&> m_onConnected;
 
@@ -59,7 +59,7 @@ namespace sfcb {
 			this->m_socket.disconnect();
 		}
 
-		size_t send(const std::vector<sf::Int8>& buffer) {
+		size_t send(const buffer_t& buffer) {
 			size_t sent;
 			auto status = this->m_socket.send(buffer.data(), buffer.size(), sent);
 
@@ -89,8 +89,8 @@ namespace sfcb {
 			for(auto* ptr: sockets) {
 				auto& socket = ptr->m_socket;
 
-				std::vector<sf::Int8> data;
 				SocketStatus status;
+				buffer_t data;
 
 				do {
 					char buffer[1024];

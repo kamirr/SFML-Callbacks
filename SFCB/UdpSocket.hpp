@@ -13,7 +13,7 @@ namespace sfcb {
 	class UdpSocket
 	: public sf::NonCopyable {
 	private:
-		Callback<const std::vector<sf::Int8>&> m_onDataReceived;
+		Callback<const buffer_t&> m_onDataReceived;
 		Callback<SocketStatus> m_onError;
 
 		static std::vector<UdpSocket*> sockets;
@@ -41,7 +41,7 @@ namespace sfcb {
 			this->m_socket.unbind();
 		}
 
-		void send(const std::vector<sf::Int8>& buffer, const sf::IpAddress &remoteAddress, unsigned short remotePort) {
+		void send(const buffer_t& buffer, const sf::IpAddress &remoteAddress, unsigned short remotePort) {
 			auto status = this->m_socket.send(buffer.data(), buffer.size(), remoteAddress, remotePort);
 
 			if(status != SocketStatus::Done) {
@@ -63,7 +63,7 @@ namespace sfcb {
 			for(auto* ptr: sockets) {
 				auto& socket = ptr->m_socket;
 
-				std::vector<sf::Int8> data;
+				buffer_t data;
 				SocketStatus status;
 
 				do {

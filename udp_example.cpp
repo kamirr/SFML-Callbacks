@@ -14,7 +14,7 @@ namespace callbacks {
 		window.close();
 	}
 
-	void onReceive(const std::vector<sf::Int8>& buffer, sf::RenderWindow& window) {
+	void onReceive(const sfcb::buffer_t& buffer, sf::RenderWindow& window) {
 		std::cout << "Received " << buffer.size() << " bytes.\n";
 		if(buffer.size() == 11) {
 			std::istringstream in(std::string(buffer.begin(), buffer.end()));
@@ -56,7 +56,7 @@ int main()
 	sfcb::UdpSocket socket;
 
 	char arr[] = "lel\n";
-	std::vector<sf::Int8> buffer(std::begin(arr), std::end(arr));
+	sfcb::buffer_t buffer(std::begin(arr), std::end(arr));
 	socket.send(buffer, "127.0.0.1", 3264);
 
 	/* setCallback method takes parameters by value,
