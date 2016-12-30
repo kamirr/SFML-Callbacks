@@ -40,6 +40,9 @@ int main()
 
 	sfcb::UdpSocket socket;
 	socket.bind(3264);
+
+	/* setCallback method takes parameters by value,
+	 * so std::ref is required to explictly pass reference */
 	socket.setCallback(callbacks::onReceive, std::ref(app));
 
 	/* Minimal main loop */
