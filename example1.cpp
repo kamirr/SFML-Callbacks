@@ -1,6 +1,6 @@
 // main.cpp
 
-#include "SFCB/CallbackWindow.hpp"
+#include "SFCB/Window.hpp"
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <iostream>
@@ -27,7 +27,7 @@ namespace callbacks {
 			20});
 	}
 
-	void onKeyPressed(sfcb::CallbackWindow<sf::RenderWindow>& window, sf::Event ev, std::vector<sfcb::CallbackContext> contexts) {
+	void onKeyPressed(sfcb::Window<sf::RenderWindow>& window, sf::Event ev, std::vector<sfcb::Context> contexts) {
 		std::cout << "Key pressed, SFML code: " << ev.key.code << std::endl;
 
 		if(ev.key.code <= sf::Keyboard::Z) {
@@ -44,12 +44,12 @@ namespace callbacks {
 int main()
 {
 	/* Create window, acts just like window given in parameter */
-	sfcb::CallbackWindow<sf::RenderWindow> app({300, 300}, "app");
+	sfcb::Window<sf::RenderWindow> app({300, 300}, "app");
 	app.setVerticalSyncEnabled(true);
 
 	/* Get universal context and create 2 new ones */
 	auto universal = app.getUniversalCallbackContext();
-	std::vector<sfcb::CallbackContext> contexts;
+	std::vector<sfcb::Context> contexts;
 	for(auto i = 0; i < 2; ++i)
 		contexts.push_back(app.createCallbackContext());
 
