@@ -13,9 +13,9 @@ namespace sfcb {
 	class TcpSocket
 	: public sf::NonCopyable {
 	private:
-		std::function<void(const std::vector<sf::Int8>&)> m_onDataReceived;
-		std::function<void(sf::Socket::Status)> m_onError;
-		std::function<void(TcpSocket&)> m_onConnected;
+		Callback<const std::vector<sf::Int8>&> m_onDataReceived;
+		Callback<sf::Socket::Status> m_onError;
+		Callback<TcpSocket&> m_onConnected;
 
 		static std::vector<TcpSocket*> sockets;
 		sf::TcpSocket m_socket;
@@ -71,17 +71,17 @@ namespace sfcb {
 
 		template<typename func_t, typename ... args_t>
 		void onDataReceived(func_t func, const args_t& ... args) {
-			this->m_onDataReceived = Callback<const std::vector<sf::Int8>&>(func, args ...);
+			this->m_onDataReceived.set(func, args ...);
 		}
 
 		template<typename func_t, typename ... args_t>
 		void onError(func_t func, const args_t& ... args) {
-			this->m_onError = Callback<sf::Socket::Status>(func, args ...);
+			this->m_onError.set(func, args ...);
 		}
 
 		template<typename func_t, typename ... args_t>
 		void onConnected(func_t func, const args_t& ... args) {
-			this->m_onConnected = Callback<TcpSocket&>(func, args ...);
+			this->m_onConnected.set(func, args ...);
 		}
 
 		static void handleCallbacks() {
