@@ -11,14 +11,14 @@
 #include <vector>
 #include <map>
 
-#include "CallbackContext.hpp"
+#include "Context.hpp"
 #include "Callback.hpp"
 
 namespace sfcb {
 	typedef sf::Event::EventType EventType;
 
 	template<typename window_t = sf::Window>
-	class CallbackWindow
+	class Window
 		: public window_t
 	{
 	private:
@@ -41,15 +41,15 @@ namespace sfcb {
 			return callback_t([](window_t&, sf::Event){ });
 		}
 
-		CallbackContext createCallbackContext() {
-			return CallbackContext(++m_contextCount);
+		Context createCallbackContext() {
+			return Context(++m_contextCount);
 		}
 
-		CallbackContext getUniversalCallbackContext() {
-			return CallbackContext(-1);
+		Context getUniversalCallbackContext() {
+			return Context(-1);
 		}
 
-		void setCurrentContext(CallbackContext c) {
+		void setCurrentContext(Context c) {
 			if(c.uid() == -1)
 				throw std::invalid_argument("Can't set current callback context to universal one");
 
@@ -57,7 +57,7 @@ namespace sfcb {
 		}
 
 		template<typename T, class ... Ts>
-		void setCallback(EventType type, CallbackContext context, T func, const Ts&... args) {
+		void setCallback(EventType type, Context context, T func, const Ts&... args) {
 			key_t key(type, context.uid());
 			m_callbacks[key] = callback_t(func, args ...);
 		}

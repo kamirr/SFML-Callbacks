@@ -11,11 +11,11 @@ namespace sfcb {
 	 * that lets programmer add a few callbacks to one event and chose which one should be called
 	 */
 
-	class CallbackContext {
+	class Context {
 		const sf::Int32 m_UID;
 
 	public:
-		CallbackContext(const sf::Int32 UID)
+		Context(const sf::Int32 UID)
 			: m_UID { UID }
 		{ }
 
