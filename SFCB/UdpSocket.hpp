@@ -12,8 +12,8 @@ namespace sfcb {
 	class UdpSocket
 	: public sf::NonCopyable {
 	private:
-		std::function<void(const std::vector<sf::Int8>&)> m_onDataReceived;
-		std::function<void(const sf::Socket::Status)> m_onError;
+		Callback<const std::vector<sf::Int8>&> m_onDataReceived;
+		Callback<const sf::Socket::Status> m_onError;
 
 		static std::vector<UdpSocket*> sockets;
 		sf::UdpSocket m_socket;
@@ -50,12 +50,12 @@ namespace sfcb {
 
 		template<typename callback_t, typename ... args_t>
 		void onDataReceived(callback_t func, const args_t& ... args) {
-			this->m_onDataReceived = Callback<const std::vector<sf::Int8>&>(func, args ...);
+			this->m_onDataReceived.set(func, args ...);
 		}
 
 		template<typename callback_t, typename ... args_t>
 		void onError(callback_t func, const args_t& ... args) {
-			this->m_onError = Callback<const sf::Socket::Status&>(func, args ...);
+			this->m_onError.set(func, args ...);
 		}
 
 		static void handleCallbacks() {
