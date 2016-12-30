@@ -1,7 +1,7 @@
 // main.cpp
 
+#include "SFCB/TcpSocket.hpp"
 #include "SFCB/Window.hpp"
-#include "SFCB/UdpSocket.hpp"
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <iostream>
@@ -29,19 +29,31 @@ namespace callbacks {
 		}
 	}
 
-	void onError(const sf::Socket::Status status, std::ostream& out) {
+	void onError(const sf::Socket::Status& status, std::ostream& out) {
 		out << "Socket: ";
 
 		switch (status) {
-		case sf::UdpSocket::Disconnected:
+		case sf::Socket::Disconnected:
 			out << "disconnected";
 			break;
-		case sf::UdpSocket::Error:
+		case sf::Socket::Error:
 			out << "error";
 			break;
+		case sf::Socket::NotReady:
+			out << "not ready";
+			break;
 		default:
-			out << "[unknown]";
+			out << "[unknown " << size_t(status) << "]";
 		}
+
+		out << std::endl;
+		exit(1);
+	}
+
+	void onConnected(sfcb::TcpSocket& socket) {
+		static char arr[] = "lel\n";
+		std::vector<sf::Int8> buffer(std::begin(arr), std::end(arr));
+		socket.send(buffer);
 	}
 }
 
@@ -53,16 +65,15 @@ int main()
 
 	app.setCallback(sf::Event::Closed, app.getUniversalCallbackContext(), callbacks::onClose);
 
-	sfcb::UdpSocket socket;
-
-	char arr[] = "lel\n";
-	std::vector<sf::Int8> buffer(std::begin(arr), std::end(arr));
-	socket.send(buffer, "127.0.0.1", 3264);
+	sfcb::TcpSocket socket;
 
 	/* setCallback method takes parameters by value,
 	 * so std::ref is required to explictly pass reference */
 	socket.onDataReceived(callbacks::onReceive, std::ref(app));
 	socket.onError(callbacks::onError, std::ref(std::cout));
+	socket.onConnected(callbacks::onConnected);
+
+	socket.connect("localhost", 3264);
 
 	/* Minimal main loop */
 	app.clear({20, 20, 20});
@@ -71,7 +82,7 @@ int main()
 		app.handleCallbacks();
 
 		/* Handle network callbacks */
-		sfcb::UdpSocket::handleCallbacks();
+		sfcb::TcpSocket::handleCallbacks();
 
 		/* All callbacks are called right before displaying window */
 		app.display();
