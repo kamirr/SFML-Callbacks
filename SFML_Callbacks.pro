@@ -6,9 +6,10 @@ CONFIG -= qt
 SOURCES += main.cpp
 
 QMAKE_CXXFLAGS += -std=c++17
-LIBS += -lsfml-graphics -lsfml-window -lsfml-system
+LIBS += -lsfml-network -lsfml-graphics -lsfml-window -lsfml-system
 
 HEADERS += \
-    SFCB/CallbackWindow.hpp \
-    SFCB/CallbackContext.hpp \
-    SFCB/Callback.hpp
+    SFCB/Callback.hpp \
+    SFCB/UdpSocket.hpp \
+    SFCB/Context.hpp \
+    SFCB/Window.hpp
