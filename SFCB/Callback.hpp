@@ -15,8 +15,8 @@ namespace sfcb {
 	public:
 		template<typename T, class ... Ts>
 		Callback(T func, const Ts&... args) {
-			m_func = [func, args...](Window<window_t>& win, event_t ev) {
-				func(win, ev, args...);
+			m_func = [func, args ...](Window<window_t>& win, event_t ev) {
+				func(win, ev, args ...);
 			};
 		}
 
