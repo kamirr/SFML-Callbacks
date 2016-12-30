@@ -23,7 +23,7 @@ namespace sfcb {
 	{
 	private:
 		typedef std::pair<EventType, sf::Int32> key_t;
-		typedef WindowCallback<window_t, sf::Event> callback_t;
+		typedef Callback<window_t&, sf::Event> callback_t;
 
 		std::map<key_t, callback_t> m_callbacks;
 
@@ -66,7 +66,7 @@ namespace sfcb {
 			for(sf::Event ev; this->pollEvent(ev);) {
 				for(const auto& pair: m_callbacks) {
 					key_t key = pair.first;
-					callback_t call = pair.second;
+					auto call = pair.second;
 
 					bool key_event_t_match = (key.first == ev.type);
 					bool key_context_match = (key.second == -1 || key.second == this->m_currentContext);
