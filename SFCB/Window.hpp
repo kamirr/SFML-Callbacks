@@ -23,7 +23,7 @@ namespace sfcb {
 	{
 	private:
 		typedef std::pair<EventType, sf::Int32> key_t;
-		typedef Callback<window_t&, sf::Event> callback_t;
+		typedef Callback<Window<window_t>&, sf::Event> callback_t;
 
 		std::map<key_t, callback_t> m_callbacks;
 
@@ -59,7 +59,7 @@ namespace sfcb {
 		template<typename T, class ... Ts>
 		void setCallback(EventType type, Context context, T func, const Ts&... args) {
 			key_t key(type, context.uid());
-			m_callbacks[key] = callback_t(func, args ...);
+			m_callbacks[key].set(func, args ...);
 		}
 
 		void handleCallbacks() {
@@ -72,7 +72,7 @@ namespace sfcb {
 					bool key_context_match = (key.second == -1 || key.second == this->m_currentContext);
 
 					if(key_event_t_match && key_context_match)
-						call(*this, ev);
+						call(std::ref(*this), ev);
 				}
 			}
 		}
