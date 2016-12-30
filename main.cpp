@@ -40,7 +40,7 @@ int main()
 
 	sfcb::UdpSocket socket;
 	socket.bind(3264);
-	socket.setCallback(callbacks::onReceive, app);
+	socket.setCallback(callbacks::onReceive, std::ref(app));
 
 	/* Minimal main loop */
 	app.clear({20, 20, 20});

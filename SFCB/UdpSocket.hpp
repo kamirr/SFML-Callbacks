@@ -40,8 +40,8 @@ namespace sfcb {
 		}
 
 		template<typename callback_t, typename ... args_t>
-		void setCallback(callback_t callback, args_t& ... args) {
-			this->m_callback = [callback, &args ...](const std::vector<sf::Int8>& vec) {
+		void setCallback(callback_t callback, args_t ... args) {
+			this->m_callback = [callback, args ...](const std::vector<sf::Int8>& vec) {
 				callback(vec, args ...);
 			};
 		}
