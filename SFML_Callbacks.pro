@@ -15,4 +15,5 @@ HEADERS += \
     SFCB/UdpSocket.hpp \
     SFCB/Context.hpp \
     SFCB/Window.hpp \
-    SFCB/TcpSocket.hpp
+    SFCB/TcpSocket.hpp \
+    SFCB/NetworkBase.hpp
