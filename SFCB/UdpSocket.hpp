@@ -11,7 +11,7 @@ namespace sfcb {
 	: public sf::NonCopyable {
 	private:
 		std::function<void(const std::vector<sf::Int8>&)> m_onDataReceived;
-		std::function<void(const sf::UdpSocket::Status)> m_onError;
+		std::function<void(const sf::Socket::Status)> m_onError;
 
 		static std::vector<UdpSocket*> sockets;
 		sf::UdpSocket m_socket;
@@ -30,7 +30,7 @@ namespace sfcb {
 			return this->m_socket.getLocalPort();
 		}
 
-		sf::UdpSocket::Status bind(unsigned short port, const sf::IpAddress &address = sf::IpAddress::Any) {
+		sf::Socket::Status bind(unsigned short port, const sf::IpAddress &address = sf::IpAddress::Any) {
 			return this->m_socket.bind(port, address);
 		}
 
@@ -41,7 +41,7 @@ namespace sfcb {
 		void send(const std::vector<sf::Int8>& buffer, const sf::IpAddress &remoteAddress, unsigned short remotePort) {
 			auto status = this->m_socket.send(buffer.data(), buffer.size(), remoteAddress, remotePort);
 
-			if(status != sf::UdpSocket::Done) {
+			if(status != sf::Socket::Done) {
 				this->m_onError(status);
 			}
 		}
@@ -55,7 +55,7 @@ namespace sfcb {
 
 		template<typename callback_t, typename ... args_t>
 		void onError(callback_t callback, const args_t& ... args) {
-			this->m_onError = [callback, args ...](const sf::UdpSocket::Status& status) {
+			this->m_onError = [callback, args ...](const sf::Socket::Status& status) {
 				callback(status, args ...);
 			};
 		}
@@ -65,7 +65,7 @@ namespace sfcb {
 				auto& socket = ptr->m_socket;
 
 				std::vector<sf::Int8> data;
-				sf::UdpSocket::Status status;
+				sf::Socket::Status status;
 
 				do {
 					char buffer[1024];
@@ -78,11 +78,11 @@ namespace sfcb {
 					for(auto i = 0u; i < received; ++i) {
 						data.push_back(buffer[i]);
 					}
-				} while(status == sf::UdpSocket::Partial);
+				} while(status == sf::Socket::Partial);
 
-				if(status == sf::UdpSocket::Done)
+				if(status == sf::Socket::Done)
 					ptr->m_onDataReceived(data);
-				else if(status != sf::UdpSocket::NotReady)
+				else if(status != sf::Socket::NotReady)
 					ptr->m_onError(status);
 			}
 		}
