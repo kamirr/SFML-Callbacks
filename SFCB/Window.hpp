@@ -23,7 +23,7 @@ namespace sfcb {
 	{
 	private:
 		typedef std::pair<EventType, sf::Int32> key_t;
-		typedef Callback<window_t, sf::Event> callback_t;
+		typedef WindowCallback<window_t, sf::Event> callback_t;
 
 		std::map<key_t, callback_t> m_callbacks;
 
