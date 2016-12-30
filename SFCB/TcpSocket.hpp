@@ -115,6 +115,8 @@ namespace sfcb {
 				}
 			}
 		}
+
+		friend class TcpListener;
 	};
 
 	std::vector<TcpSocket*> TcpSocket::sockets;
