@@ -12,4 +12,5 @@ HEADERS += \
     SFCB/Callback.hpp \
     SFCB/UdpSocket.hpp \
     SFCB/Context.hpp \
-    SFCB/Window.hpp
+    SFCB/Window.hpp \
+    SFCB/TcpSocket.hpp
