@@ -28,6 +28,21 @@ namespace callbacks {
 			});
 		}
 	}
+
+	void onError(const sf::Socket::Status status, std::ostream& out) {
+		out << "Socket: ";
+
+		switch (status) {
+		case sf::UdpSocket::Disconnected:
+			out << "disconnected";
+			break;
+		case sf::UdpSocket::Error:
+			out << "error";
+			break;
+		default:
+			out << "[unknown]";
+		}
+	}
 }
 
 int main()
@@ -39,11 +54,15 @@ int main()
 	app.setCallback(sf::Event::Closed, app.getUniversalCallbackContext(), callbacks::onClose);
 
 	sfcb::UdpSocket socket;
-	socket.bind(3264);
+
+	char arr[] = "lel\n";
+	std::vector<sf::Int8> buffer(std::begin(arr), std::end(arr));
+	socket.send(buffer, "127.0.0.1", 3264);
 
 	/* setCallback method takes parameters by value,
 	 * so std::ref is required to explictly pass reference */
-	socket.setCallback(callbacks::onReceive, std::ref(app));
+	socket.onDataReceived(callbacks::onReceive, std::ref(app));
+	socket.onError(callbacks::onError, std::ref(std::cout));
 
 	/* Minimal main loop */
 	app.clear({20, 20, 20});

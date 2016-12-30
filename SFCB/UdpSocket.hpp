@@ -10,7 +10,9 @@ namespace sfcb {
 	class UdpSocket
 	: public sf::NonCopyable {
 	private:
-		std::function<void(const std::vector<sf::Int8>&)> m_callback;
+		std::function<void(const std::vector<sf::Int8>&)> m_onDataReceived;
+		std::function<void(const sf::UdpSocket::Status)> m_onError;
+
 		static std::vector<UdpSocket*> sockets;
 		sf::UdpSocket m_socket;
 
@@ -36,14 +38,25 @@ namespace sfcb {
 			this->m_socket.unbind();
 		}
 
-		sf::UdpSocket::Status send(const void *data, std::size_t size, const sf::IpAddress &remoteAddress, unsigned short remotePort) {
-			return this->m_socket.send(data, size, remoteAddress, remotePort);
+		void send(const std::vector<sf::Int8>& buffer, const sf::IpAddress &remoteAddress, unsigned short remotePort) {
+			auto status = this->m_socket.send(buffer.data(), buffer.size(), remoteAddress, remotePort);
+
+			if(status != sf::UdpSocket::Done) {
+				this->m_onError(status);
+			}
 		}
 
 		template<typename callback_t, typename ... args_t>
-		void setCallback(callback_t callback, const args_t& ... args) {
-			this->m_callback = [callback, args ...](const std::vector<sf::Int8>& vec) {
+		void onDataReceived(callback_t callback, const args_t& ... args) {
+			this->m_onDataReceived = [callback, args ...](const std::vector<sf::Int8>& vec) {
 				callback(vec, args ...);
+			};
+		}
+
+		template<typename callback_t, typename ... args_t>
+		void onError(callback_t callback, const args_t& ... args) {
+			this->m_onError = [callback, args ...](const sf::UdpSocket::Status& status) {
+				callback(status, args ...);
 			};
 		}
 
@@ -68,7 +81,9 @@ namespace sfcb {
 				} while(status == sf::UdpSocket::Partial);
 
 				if(status == sf::UdpSocket::Done)
-					ptr->m_callback(data);
+					ptr->m_onDataReceived(data);
+				else if(status != sf::UdpSocket::NotReady)
+					ptr->m_onError(status);
 			}
 		}
 	};
