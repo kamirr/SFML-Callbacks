@@ -1,7 +1,6 @@
 #ifndef CALLBACK_HPP
 #define CALLBACK_HPP
 
-#include <SFML/Window/Event.hpp>
 #include <functional>
 
 namespace sfcb {
