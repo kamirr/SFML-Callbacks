@@ -7,6 +7,48 @@
 #include <iostream>
 #include <sstream>
 
+#include <SFML/Network/TcpListener.hpp>
+#include <memory>
+namespace sfcb {
+	typedef std::shared_ptr<TcpSocket> sharedTcpSocket;
+
+	class TcpListener {
+	private:
+		Callback<sharedTcpSocket> m_onAccepted;
+		sf::TcpListener m_listener;
+
+	public:
+		TcpListener() {
+			this->m_listener.setBlocking(false);
+		}
+
+		unsigned short getLocalPort() {
+			return this->m_listener.getLocalPort();
+		}
+
+		SocketStatus listen(unsigned short port) {
+			return this->m_listener.listen(port);
+		}
+
+		void close() {
+			this->m_listener.close();
+		}
+
+		template<typename func_t, typename ... args_t>
+		void onAccepted(func_t func, const args_t& ... args) {
+			this->m_onAccepted.set(func, args ...);
+		}
+
+		void handleCallbacks() {
+			auto client = std::make_shared<TcpSocket>();
+			auto status = this->m_listener.accept((*client).m_socket);
+
+			if(status == SocketStatus::Done)
+				this->m_onAccepted(client);
+		}
+	};
+}
+
 /* Namespace with callbacks */
 namespace callbacks {
 	void onClose(sf::RenderWindow& window, sf::Event) {
@@ -14,47 +56,22 @@ namespace callbacks {
 		window.close();
 	}
 
-	void onReceive(const sfcb::buffer_t& buffer, sf::RenderWindow& window) {
-		std::cout << "Received " << buffer.size() << " bytes.\n";
+	void onDataReceived(const sfcb::buffer_t& data, std::string& log) {
+		for(const sf::Int8 c: data)
+			log += c;
 
-		if(buffer.size() == 11) {
-			std::istringstream in(std::string(buffer.begin(), buffer.end()));
-			int r, g, b;
-			in >> r >> g >> b;
-
-			window.clear({
-				sf::Uint8(r),
-				sf::Uint8(g),
-				sf::Uint8(b)
-			});
-		}
+		std::cout << "Log updated:\n" << log << std::endl;
 	}
 
-	void onError(const sfcb::SocketStatus& status, std::ostream& out) {
-		out << "Socket: ";
+	void onAccepted(sfcb::sharedTcpSocket socket, std::vector<sfcb::sharedTcpSocket>& clients, std::string& log) {
+		std::cout << "connected (" << (*socket).getRemoteAddress() << ")" << std::endl;
 
-		switch (status) {
-		case sfcb::SocketStatus::Disconnected:
-			out << "disconnected";
-			break;
-		case sfcb::SocketStatus::Error:
-			out << "error";
-			break;
-		case sfcb::SocketStatus::NotReady:
-			out << "not ready";
-			break;
-		default:
-			out << "[unknown " << size_t(status) << "]";
-		}
-
-		out << std::endl;
-		exit(1);
-	}
-
-	void onConnected(sfcb::TcpSocket& socket) {
-		static char arr[] = "lel\n";
+		static char arr[] = "Hi!\n";
 		sfcb::buffer_t buffer(std::begin(arr), std::end(arr));
-		socket.send(buffer);
+		(*socket).send(buffer);
+
+		(*socket).onDataReceived(onDataReceived, std::ref(log));
+		clients.push_back(socket);
 	}
 }
 
@@ -66,15 +83,12 @@ int main()
 
 	app.setCallback(sf::Event::Closed, app.getUniversalCallbackContext(), callbacks::onClose);
 
-	sfcb::TcpSocket socket;
+	std::vector<sfcb::sharedTcpSocket> clients;
+	std::string log;
 
-	/* setCallback method takes parameters by value,
-	 * so std::ref is required to explictly pass reference */
-	socket.onDataReceived(callbacks::onReceive, std::ref(app));
-	socket.onError(callbacks::onError, std::ref(std::cout));
-	socket.onConnected(callbacks::onConnected);
-
-	socket.connect("localhost", 3264);
+	sfcb::TcpListener listener;
+	listener.onAccepted(callbacks::onAccepted, std::ref(clients), std::ref(log));
+	listener.listen(3254);
 
 	/* Minimal main loop */
 	app.clear({20, 20, 20});
@@ -82,7 +96,10 @@ int main()
 		/* Handle window callbacks */
 		app.handleCallbacks();
 
-		/* Handle network callbacks */
+		/* Handle listener callbacks */
+		listener.handleCallbacks();
+
+		/* Handle TCP callbacks */
 		sfcb::TcpSocket::handleCallbacks();
 
 		/* All callbacks are called right before displaying window */
