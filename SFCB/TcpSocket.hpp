@@ -7,12 +7,14 @@
 #include <algorithm>
 #include <vector>
 
+#include "Callback.hpp"
+
 namespace sfcb {
 	class TcpSocket
 	: public sf::NonCopyable {
 	private:
 		std::function<void(const std::vector<sf::Int8>&)> m_onDataReceived;
-		std::function<void(const sf::Socket::Status)> m_onError;
+		std::function<void(sf::Socket::Status)> m_onError;
 		std::function<void(TcpSocket&)> m_onConnected;
 
 		static std::vector<TcpSocket*> sockets;
@@ -67,25 +69,19 @@ namespace sfcb {
 			return sent;
 		}
 
-		template<typename callback_t, typename ... args_t>
-		void onDataReceived(callback_t callback, const args_t& ... args) {
-			this->m_onDataReceived = [callback, args ...](const std::vector<sf::Int8>& vec) {
-				callback(vec, args ...);
-			};
+		template<typename func_t, typename ... args_t>
+		void onDataReceived(func_t func, const args_t& ... args) {
+			this->m_onDataReceived = Callback<const std::vector<sf::Int8>&>(func, args ...);
 		}
 
-		template<typename callback_t, typename ... args_t>
-		void onError(callback_t func, const args_t& ... args) {
-			this->m_onError = [func, args ...](const sf::Socket::Status& status) {
-				func(status, args ...);
-			};
+		template<typename func_t, typename ... args_t>
+		void onError(func_t func, const args_t& ... args) {
+			this->m_onError = Callback<sf::Socket::Status>(func, args ...);
 		}
 
-		template<typename callback_t, typename ... args_t>
-		void onConnected(callback_t func, const args_t& ... args) {
-			this->m_onConnected = [func, args ...](TcpSocket& socket) {
-				func(socket, args ...);
-			};
+		template<typename func_t, typename ... args_t>
+		void onConnected(func_t func, const args_t& ... args) {
+			this->m_onConnected = Callback<TcpSocket&>(func, args ...);
 		}
 
 		static void handleCallbacks() {

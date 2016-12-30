@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <vector>
 
+#include "Callback.hpp"
+
 namespace sfcb {
 	class UdpSocket
 	: public sf::NonCopyable {
@@ -47,17 +49,13 @@ namespace sfcb {
 		}
 
 		template<typename callback_t, typename ... args_t>
-		void onDataReceived(callback_t callback, const args_t& ... args) {
-			this->m_onDataReceived = [callback, args ...](const std::vector<sf::Int8>& vec) {
-				callback(vec, args ...);
-			};
+		void onDataReceived(callback_t func, const args_t& ... args) {
+			this->m_onDataReceived = Callback<const std::vector<sf::Int8>&>(func, args ...);
 		}
 
 		template<typename callback_t, typename ... args_t>
-		void onError(callback_t callback, const args_t& ... args) {
-			this->m_onError = [callback, args ...](const sf::Socket::Status& status) {
-				callback(status, args ...);
-			};
+		void onError(callback_t func, const args_t& ... args) {
+			this->m_onError = Callback<const sf::Socket::Status&>(func, args ...);
 		}
 
 		static void handleCallbacks() {

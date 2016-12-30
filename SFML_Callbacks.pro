@@ -4,6 +4,8 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp
+# SOURCES += udp_example.cpp
+# SOURCES += example1.cpp
 
 QMAKE_CXXFLAGS += -std=c++17
 LIBS += -lsfml-network -lsfml-graphics -lsfml-window -lsfml-system

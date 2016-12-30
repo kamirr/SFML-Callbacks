@@ -10,7 +10,7 @@ namespace sfcb {
 		std::function<void(callback_args_t ...)> m_func;
 
 	public:
-		template<typename func_t, class ... args_t>
+		template<typename func_t, typename ... args_t>
 		Callback(func_t func, const args_t&... args) {
 			m_func = [func, args ...](callback_args_t ... callback_args) {
 				func(callback_args ..., args ...);
