@@ -1,10 +1,11 @@
 // main.cpp
 
-#include "SFCB/CallbackWindow.hpp"
+#include "SFCB/Window.hpp"
+#include "SFCB/UdpSocket.hpp"
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <iostream>
-#include <vector>
+#include <sstream>
 
 /* Namespace with callbacks */
 namespace callbacks {
@@ -13,30 +14,18 @@ namespace callbacks {
 		window.close();
 	}
 
-	void onMouseMoved1(sf::RenderWindow& window, sf::Event ev) {
-		window.clear({
-			static_cast<sf::Uint8>(double(ev.mouseMove.x) / 300. * 235. + 20),
-			20,
-			20});
-	}
+	void onReceive(const std::vector<sf::Int8>& buffer, sf::RenderWindow& window) {
+		std::cout << "Received " << buffer.size() << " bytes.\n";
+		if(buffer.size() == 11) {
+			std::istringstream in(std::string(buffer.begin(), buffer.end()));
+			int r, g, b;
+			in >> r >> g >> b;
 
-	void onMouseMoved2(sf::RenderWindow& window, sf::Event ev) {
-		window.clear({
-			20,
-			static_cast<sf::Uint8>(double(ev.mouseMove.x) / 300. * 235. + 20),
-			20});
-	}
-
-	void onKeyPressed(sfcb::CallbackWindow<sf::RenderWindow>& window, sf::Event ev, std::vector<sfcb::CallbackContext> contexts) {
-		std::cout << "Key pressed, SFML code: " << ev.key.code << std::endl;
-
-		if(ev.key.code <= sf::Keyboard::Z) {
-			if(size_t(ev.key.code) >= contexts.size()) {
-				std::cout << "No such context (" << ev.key.code + 1 << ")!" << std::endl;
-			} else {
-				window.setCurrentContext(contexts[ev.key.code]);
-				std::cout << "Current callback context: " << ev.key.code + 1 << std::endl;
-			}
+			window.clear({
+				sf::Uint8(r),
+				sf::Uint8(g),
+				sf::Uint8(b)
+			});
 		}
 	}
 }
@@ -44,31 +33,23 @@ namespace callbacks {
 int main()
 {
 	/* Create window, acts just like window given in parameter */
-	sfcb::CallbackWindow<sf::RenderWindow> app({300, 300}, "app");
-	app.setVerticalSyncEnabled(true);
+	sfcb::Window<sf::RenderWindow> app({300, 300}, "app");
+	app.setFramerateLimit(60);
 
-	/* Get universal context and create 2 new ones */
-	auto universal = app.getUniversalCallbackContext();
-	std::vector<sfcb::CallbackContext> contexts;
-	for(auto i = 0; i < 2; ++i)
-		contexts.push_back(app.createCallbackContext());
+	app.setCallback(sf::Event::Closed, app.getUniversalCallbackContext(), callbacks::onClose);
 
-	/* Set current context for callbacks */
-	app.setCurrentContext(contexts[0]);
-
-	/* Connect a few callbacks to some events */
-	app.setCallback(sf::Event::Closed, universal, callbacks::onClose);
-	app.setCallback(sf::Event::MouseMoved, contexts[0], callbacks::onMouseMoved1);
-	app.setCallback(sf::Event::MouseMoved, contexts[1], callbacks::onMouseMoved2);
-
-	/* Connect callback with additional parameters */
-	app.setCallback(sf::Event::KeyPressed, universal, callbacks::onKeyPressed, contexts);
+	sfcb::UdpSocket socket;
+	socket.bind(3264);
+	socket.setCallback(callbacks::onReceive, app);
 
 	/* Minimal main loop */
 	app.clear({20, 20, 20});
 	while(app.isOpen()) {
-		/* Apply logic */
+		/* Handle window callbacks */
 		app.handleCallbacks();
+
+		/* Handle network callbacks */
+		sfcb::UdpSocket::handleCallbacks();
 
 		/* All callbacks are called right before displaying window */
 		app.display();
