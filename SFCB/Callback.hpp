@@ -5,17 +5,17 @@
 
 namespace sfcb {
 	template<typename window_t>
-	class CallbackWindow;
+	class Window;
 
 	template<typename window_t, typename event_t>
 	class Callback {
 	private:
-		std::function<void(CallbackWindow<window_t>&, event_t)> m_func;
+		std::function<void(Window<window_t>&, event_t)> m_func;
 
 	public:
 		template<typename T, class ... Ts>
 		Callback(T func, const Ts&... args) {
-			m_func = [func, args...](CallbackWindow<window_t>& win, event_t ev) {
+			m_func = [func, args...](Window<window_t>& win, event_t ev) {
 				func(win, ev, args...);
 			};
 		}
@@ -23,7 +23,7 @@ namespace sfcb {
 		Callback()
 		{ }
 
-		inline void operator()(CallbackWindow<window_t>& window, event_t ev) {
+		inline void operator()(Window<window_t>& window, event_t ev) {
 			this->m_func(window, ev);
 		}
 	};
