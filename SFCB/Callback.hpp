@@ -4,9 +4,6 @@
 #include <functional>
 
 namespace sfcb {
-	template<typename window_t>
-	class Window;
-
 	template<typename ... callback_args_t>
 	class Callback {
 	private:
