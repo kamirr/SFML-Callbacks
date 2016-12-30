@@ -43,10 +43,6 @@ namespace callbacks {
 
 int main()
 {
-	std::sort(tab, tab + 3, less);
-
-	std::cout << *tab[0] << ", " << *tab[1] << ", " << *tab[2] << ".\n";
-
 	/* Create window, acts just like window given in parameter */
 	sfcb::CallbackWindow<sf::RenderWindow> app({300, 300}, "app");
 	app.setVerticalSyncEnabled(true);
