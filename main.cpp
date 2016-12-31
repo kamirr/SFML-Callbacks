@@ -56,8 +56,8 @@ namespace callbacks {
 		window.close();
 	}
 
-	void onDataReceived(const sfcb::buffer_t& data, std::string& log) {
-		for(const sf::Int8 c: data)
+	void onDataReceived(sfcb::TcpEvent ev, std::string& log) {
+		for(const sf::Int8 c: *ev.buffer)
 			log += c;
 
 		std::cout << "Log updated:\n" << log << std::endl;
@@ -70,7 +70,7 @@ namespace callbacks {
 		sfcb::buffer_t buffer(std::begin(arr), std::end(arr));
 		(*socket).send(buffer);
 
-		(*socket).onDataReceived(onDataReceived, std::ref(log));
+		(*socket).setCallback(sfcb::TcpEvent::DataReceived, onDataReceived, std::ref(log));
 		clients.push_back(socket);
 	}
 }
