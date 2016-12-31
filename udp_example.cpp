@@ -14,10 +14,10 @@ namespace callbacks {
 		window.close();
 	}
 
-	void onReceive(const sfcb::buffer_t& buffer, sf::RenderWindow& window) {
-		std::cout << "Received " << buffer.size() << " bytes.\n";
-		if(buffer.size() == 11) {
-			std::istringstream in(std::string(buffer.begin(), buffer.end()));
+	void onReceive(sfcb::SocketEvent ev, sf::RenderWindow& window) {
+		std::cout << "Received " << ev.buffer->size() << " bytes.\n";
+		if(ev.buffer->size() == 11) {
+			std::istringstream in(std::string(ev.buffer->begin(), ev.buffer->end()));
 			int r, g, b;
 			in >> r >> g >> b;
 
@@ -29,10 +29,10 @@ namespace callbacks {
 		}
 	}
 
-	void onError(const sfcb::SocketStatus status, std::ostream& out) {
+	void onError(sfcb::SocketEvent ev, std::ostream& out) {
 		out << "Socket: ";
 
-		switch (status) {
+		switch (ev.status) {
 		case sfcb::SocketStatus::Disconnected:
 			out << "disconnected";
 			break;
@@ -61,8 +61,8 @@ int main()
 
 	/* setCallback method takes parameters by value,
 	 * so std::ref is required to explictly pass reference */
-	socket.onDataReceived(callbacks::onReceive, std::ref(app));
-	socket.onError(callbacks::onError, std::ref(std::cout));
+	socket.setCallback(sfcb::SocketEvent::DataReceived, callbacks::onReceive, std::ref(app));
+	socket.setCallback(sfcb::SocketEvent::Error, callbacks::onError, std::ref(std::cout));
 
 	/* Minimal main loop */
 	app.clear({20, 20, 20});

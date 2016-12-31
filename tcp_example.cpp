@@ -14,7 +14,7 @@ namespace callbacks {
 		window.close();
 	}
 
-	void onReceive(sfcb::TcpEvent ev, sf::RenderWindow& window) {
+	void onReceive(sfcb::SocketEvent ev, sf::RenderWindow& window) {
 		std::cout << "Received " << ev.buffer->size() << " bytes.\n";
 
 		if(ev.buffer->size() == 11) {
@@ -30,7 +30,7 @@ namespace callbacks {
 		}
 	}
 
-	void onError(sfcb::TcpEvent ev, std::ostream& out) {
+	void onError(sfcb::SocketEvent ev, std::ostream& out) {
 		out << "Socket: ";
 
 		switch (ev.status) {
@@ -51,7 +51,7 @@ namespace callbacks {
 		exit(1);
 	}
 
-	void onConnected(sfcb::TcpEvent ev) {
+	void onConnected(sfcb::SocketEvent ev) {
 		static char arr[] = "lel\n";
 		sfcb::buffer_t buffer(std::begin(arr), std::end(arr));
 		ev.client->send(buffer);
@@ -70,9 +70,9 @@ int main()
 
 	/* setCallback method takes parameters by value,
 	 * so std::ref is required to explictly pass reference */
-	socket.setCallback(sfcb::TcpEvent::DataReceived, callbacks::onReceive, std::ref(app));
-	socket.setCallback(sfcb::TcpEvent::Error, callbacks::onError, std::ref(std::cout));
-	socket.setCallback(sfcb::TcpEvent::Connected, callbacks::onConnected);
+	socket.setCallback(sfcb::SocketEvent::DataReceived, callbacks::onReceive, std::ref(app));
+	socket.setCallback(sfcb::SocketEvent::Error, callbacks::onError, std::ref(std::cout));
+	socket.setCallback(sfcb::SocketEvent::Connected, callbacks::onConnected);
 
 	socket.connect("localhost", 3264);
 
