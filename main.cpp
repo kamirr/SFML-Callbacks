@@ -1,53 +1,11 @@
 // main.cpp
 
-#include "SFCB/TcpSocket.hpp"
+#include "SFCB/TcpListener.hpp"
 #include "SFCB/Window.hpp"
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <iostream>
 #include <sstream>
-
-#include <SFML/Network/TcpListener.hpp>
-#include <memory>
-namespace sfcb {
-	typedef std::shared_ptr<TcpSocket> sharedTcpSocket;
-
-	class TcpListener {
-	private:
-		Callback<sharedTcpSocket> m_onAccepted;
-		sf::TcpListener m_listener;
-
-	public:
-		TcpListener() {
-			this->m_listener.setBlocking(false);
-		}
-
-		unsigned short getLocalPort() {
-			return this->m_listener.getLocalPort();
-		}
-
-		SocketStatus listen(unsigned short port) {
-			return this->m_listener.listen(port);
-		}
-
-		void close() {
-			this->m_listener.close();
-		}
-
-		template<typename func_t, typename ... args_t>
-		void onAccepted(func_t func, const args_t& ... args) {
-			this->m_onAccepted.set(func, args ...);
-		}
-
-		void handleCallbacks() {
-			auto client = std::make_shared<TcpSocket>();
-			auto status = this->m_listener.accept((*client).m_socket);
-
-			if(status == SocketStatus::Done)
-				this->m_onAccepted(client);
-		}
-	};
-}
 
 /* Namespace with callbacks */
 namespace callbacks {
@@ -87,7 +45,7 @@ int main()
 	std::string log;
 
 	sfcb::TcpListener listener;
-	listener.onAccepted(callbacks::onAccepted, std::ref(clients), std::ref(log));
+	listener.setCallback(callbacks::onAccepted, std::ref(clients), std::ref(log));
 	listener.listen(3254);
 
 	/* Minimal main loop */
