@@ -6,6 +6,7 @@
 #include <functional>
 #include <algorithm>
 #include <vector>
+#include <map>
 
 #include "NetworkBase.hpp"
 #include "Callback.hpp"
@@ -14,9 +15,7 @@ namespace sfcb {
 	class TcpSocket
 	: public sf::NonCopyable {
 	private:
-		Callback<const buffer_t&> m_onDataReceived;
-		Callback<SocketStatus> m_onError;
-		Callback<TcpSocket&> m_onConnected;
+		std::map<TcpEvent::Type, Callback<TcpEvent>> m_callbacks;
 
 		static std::vector<TcpSocket*> sockets;
 		sf::TcpSocket m_socket;
@@ -52,7 +51,7 @@ namespace sfcb {
 
 			if(status != SocketStatus::Done
 			&& status != SocketStatus::NotReady)
-				this->m_onError(status);
+				this->m_callbacks[TcpEvent::Error](status);
 		}
 
 		void disconnect() {
@@ -64,25 +63,15 @@ namespace sfcb {
 			auto status = this->m_socket.send(buffer.data(), buffer.size(), sent);
 
 			if(status != SocketStatus::Done) {
-				this->m_onError(status);
+				this->m_callbacks[TcpEvent::Error](status);
 			}
 
 			return sent;
 		}
 
 		template<typename func_t, typename ... args_t>
-		void onDataReceived(func_t func, const args_t& ... args) {
-			this->m_onDataReceived.set(func, args ...);
-		}
-
-		template<typename func_t, typename ... args_t>
-		void onError(func_t func, const args_t& ... args) {
-			this->m_onError.set(func, args ...);
-		}
-
-		template<typename func_t, typename ... args_t>
-		void onConnected(func_t func, const args_t& ... args) {
-			this->m_onConnected.set(func, args ...);
+		void setCallback(TcpEvent::Type type, func_t func, const args_t& ... args) {
+			this->m_callbacks[type].set(func, args ...);
 		}
 
 		static void handleCallbacks() {
@@ -104,14 +93,14 @@ namespace sfcb {
 				} while(status == SocketStatus::Partial);
 
 				if(status == SocketStatus::Done) {
-					ptr->m_onDataReceived(data);
+					ptr->m_callbacks[TcpEvent::DataReceived](data);
 				} else if(status != SocketStatus::NotReady) {
-					ptr->m_onError(status);
+					ptr->m_callbacks[TcpEvent::DataReceived](status);
 				}
 
 				if(ptr->m_connecting && socket.getRemotePort()) {
 					ptr->m_connecting = false;
-					ptr->m_onConnected(*ptr);
+					ptr->m_callbacks[TcpEvent::Connected](*ptr);
 				}
 			}
 		}
