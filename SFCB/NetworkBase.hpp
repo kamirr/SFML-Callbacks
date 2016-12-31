@@ -11,7 +11,7 @@ namespace sfcb {
 
 	class TcpSocket;
 
-	struct TcpEvent {
+	struct SocketEvent {
 		enum Type {
 			DataReceived,
 			Connected,
@@ -24,15 +24,15 @@ namespace sfcb {
 			TcpSocket* client;
 		};
 
-		TcpEvent(const buffer_t& buffer) {
+		SocketEvent(const buffer_t& buffer) {
 			this->type = Type::DataReceived;
 			this->buffer = &buffer;
 		}
-		TcpEvent(SocketStatus status) {
+		SocketEvent(SocketStatus status) {
 			this->type = Type::Error;
 			this->status = status;
 		}
-		TcpEvent(TcpSocket& socket) {
+		SocketEvent(TcpSocket& socket) {
 			this->type = Type::Connected;
 			this->client = &socket;
 		}
