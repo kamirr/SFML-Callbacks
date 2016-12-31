@@ -95,7 +95,7 @@ namespace sfcb {
 				if(status == SocketStatus::Done) {
 					ptr->m_callbacks[TcpEvent::DataReceived](data);
 				} else if(status != SocketStatus::NotReady) {
-					ptr->m_callbacks[TcpEvent::DataReceived](status);
+					ptr->m_callbacks[TcpEvent::Error](status);
 				}
 
 				if(ptr->m_connecting && socket.getRemotePort()) {
