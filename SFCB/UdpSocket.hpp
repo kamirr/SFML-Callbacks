@@ -5,6 +5,7 @@
 #include <functional>
 #include <algorithm>
 #include <vector>
+#include <map>
 
 #include "NetworkBase.hpp"
 #include "Callback.hpp"
@@ -13,8 +14,7 @@ namespace sfcb {
 	class UdpSocket
 	: public sf::NonCopyable {
 	private:
-		Callback<const buffer_t&> m_onDataReceived;
-		Callback<SocketStatus> m_onError;
+		std::map<SocketEvent::Type, Callback<SocketEvent>> m_callbacks;
 
 		static std::vector<UdpSocket*> sockets;
 		sf::UdpSocket m_socket;
@@ -45,18 +45,13 @@ namespace sfcb {
 			auto status = this->m_socket.send(buffer.data(), buffer.size(), remoteAddress, remotePort);
 
 			if(status != SocketStatus::Done) {
-				this->m_onError(status);
+				this->m_callbacks[SocketEvent::Error](status);
 			}
 		}
 
 		template<typename callback_t, typename ... args_t>
-		void onDataReceived(callback_t func, const args_t& ... args) {
-			this->m_onDataReceived.set(func, args ...);
-		}
-
-		template<typename callback_t, typename ... args_t>
-		void onError(callback_t func, const args_t& ... args) {
-			this->m_onError.set(func, args ...);
+		void setCallback(SocketEvent::Type type, callback_t func, const args_t& ... args) {
+			this->m_callbacks[type].set(func, args ...);
 		}
 
 		static void handleCallbacks() {
@@ -80,9 +75,9 @@ namespace sfcb {
 				} while(status == SocketStatus::Partial);
 
 				if(status == SocketStatus::Done)
-					ptr->m_onDataReceived(data);
+					ptr->m_callbacks[SocketEvent::DataReceived](data);
 				else if(status != SocketStatus::NotReady)
-					ptr->m_onError(status);
+					ptr->m_callbacks[SocketEvent::Error](status);
 			}
 		}
 	};

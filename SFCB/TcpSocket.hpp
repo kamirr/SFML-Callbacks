@@ -15,7 +15,7 @@ namespace sfcb {
 	class TcpSocket
 	: public sf::NonCopyable {
 	private:
-		std::map<TcpEvent::Type, Callback<TcpEvent>> m_callbacks;
+		std::map<SocketEvent::Type, Callback<SocketEvent>> m_callbacks;
 
 		static std::vector<TcpSocket*> sockets;
 		sf::TcpSocket m_socket;
@@ -51,7 +51,7 @@ namespace sfcb {
 
 			if(status != SocketStatus::Done
 			&& status != SocketStatus::NotReady)
-				this->m_callbacks[TcpEvent::Error](status);
+				this->m_callbacks[SocketEvent::Error](status);
 		}
 
 		void disconnect() {
@@ -63,14 +63,14 @@ namespace sfcb {
 			auto status = this->m_socket.send(buffer.data(), buffer.size(), sent);
 
 			if(status != SocketStatus::Done) {
-				this->m_callbacks[TcpEvent::Error](status);
+				this->m_callbacks[SocketEvent::Error](status);
 			}
 
 			return sent;
 		}
 
 		template<typename func_t, typename ... args_t>
-		void setCallback(TcpEvent::Type type, func_t func, const args_t& ... args) {
+		void setCallback(SocketEvent::Type type, func_t func, const args_t& ... args) {
 			this->m_callbacks[type].set(func, args ...);
 		}
 
@@ -93,14 +93,14 @@ namespace sfcb {
 				} while(status == SocketStatus::Partial);
 
 				if(status == SocketStatus::Done) {
-					ptr->m_callbacks[TcpEvent::DataReceived](data);
+					ptr->m_callbacks[SocketEvent::DataReceived](data);
 				} else if(status != SocketStatus::NotReady) {
-					ptr->m_callbacks[TcpEvent::Error](status);
+					ptr->m_callbacks[SocketEvent::Error](status);
 				}
 
 				if(ptr->m_connecting && socket.getRemotePort()) {
 					ptr->m_connecting = false;
-					ptr->m_callbacks[TcpEvent::Connected](*ptr);
+					ptr->m_callbacks[SocketEvent::Connected](*ptr);
 				}
 			}
 		}
