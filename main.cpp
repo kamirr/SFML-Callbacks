@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
+#include <ctime>
 
 /* Namespace with callbacks */
 namespace callbacks {
@@ -42,6 +43,7 @@ namespace callbacks {
 int main()
 {
 	std::vector<sfcb::sharedTcpSocket> clients;
+	std::srand(std::time(nullptr));
 
 	std::string log;
 	size_t oldSize = log.size();
