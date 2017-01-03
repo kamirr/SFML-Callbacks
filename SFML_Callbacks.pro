@@ -4,9 +4,10 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp
+# SOURCES += example1.cpp
 # SOURCES += udp_example.cpp
 # SOURCES += tcp_example.cpp
-# SOURCES += example1.cpp
+# SOURCES += tcp_listener_example.cpp
 
 QMAKE_CXXFLAGS += -std=c++17
 LIBS += -lsfml-network -lsfml-graphics -lsfml-window -lsfml-system
@@ -17,4 +18,5 @@ HEADERS += \
     SFCB/Context.hpp \
     SFCB/Window.hpp \
     SFCB/TcpSocket.hpp \
-    SFCB/NetworkBase.hpp
+    SFCB/NetworkBase.hpp \
+    SFCB/TcpListener.hpp
