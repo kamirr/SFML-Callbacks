@@ -38,9 +38,9 @@ namespace sfcb {
 
 		void handleCallbacks() {
 			auto client = std::make_shared<TcpSocket>();
-			auto status = this->m_listener.accept((*client).m_socket);
+			auto& SfmlSocket = (*client).m_socket;
 
-			if(status == SocketStatus::Done)
+			if(this->m_listener.accept(SfmlSocket) == SocketStatus::Done)
 				this->m_onAccepted(client);
 		}
 	};
