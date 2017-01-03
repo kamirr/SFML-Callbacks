@@ -10,7 +10,7 @@ SOURCES += main.cpp
 # SOURCES += tcp_listener_example.cpp
 
 QMAKE_CXXFLAGS += -std=c++17
-LIBS += -lsfml-network -lsfml-graphics -lsfml-window -lsfml-system
+LIBS += -lsfml-network -lsfml-graphics -lsfml-window -lsfml-system -lpthread
 
 HEADERS += \
     SFCB/Callback.hpp \

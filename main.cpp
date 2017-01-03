@@ -1,71 +1,86 @@
 // main.cpp
 
-#include "SFCB/TcpListener.hpp"
+#include <SFML/System/MemoryInputStream.hpp>
+#include <SFML/Graphics/Texture.hpp>
+
+#include <SFML/Audio.hpp>
+#include <future>
+#include <algorithm>
 #include <iostream>
-#include <sstream>
-#include <cstdlib>
-#include <ctime>
+#include <fstream>
+#include <cstring>
+#include <string>
+#include <thread>
 
-/* Namespace with callbacks */
-namespace callbacks {
-	void onAccepted(sfcb::sharedTcpSocket socket, std::vector<sfcb::sharedTcpSocket>& clients, std::string& log) {
-		std::cout << "connected (" << (*socket).getRemoteAddress() << ")" << std::endl;
+#include "SFCB/NetworkBase.hpp"
+#include "SFCB/Callback.hpp"
 
-		static const std::string charset("abcdefghiklmonpqrstuwxyzABCDEFGHIKLMNOPQRSTUWXYZ0123456789");
-		std::string login;
+namespace sfcb {
+	class Resources
+		: public sf::NonCopyable {
+	private:
+		std::vector<std::thread> threads;
 
-		int r = rand() % 255, g = rand() % 255;
-		auto background = "\033[48;2;" + std::to_string(r)     + ";" + std::to_string(g)     + ";" + std::to_string(255) + "m";
-		auto foreground = "\033[38;2;" + std::to_string(255-r) + ";" + std::to_string(255-g) + ";" + std::to_string(0)   + "m";
-		login = background + foreground;
-
-		for(int i = 0; i < 4; ++i) {
-			login += charset[size_t(rand()) % charset.size()];
+		static void worker(std::future<void> future) {
+			future.wait();
 		}
 
-		login += ":\033[0m ";
+		static void requestBuffer_impl(const std::string path, Callback<const buffer_t&> callback) {
+			std::ifstream is(path);
+			is >> std::noskipws;
 
-		static char arr[] = "Hi!\n";
-		sfcb::buffer_t buffer(std::begin(arr), std::end(arr));
+			std::istream_iterator<char> start(is), end;
+			buffer_t buffer(start, end);
 
-		(*socket).send(buffer);
-		(*socket).setCallback(sfcb::SocketEvent::DataReceived, [&log, login](sfcb::SocketEvent ev) {
-			log += login;
-			for(const sf::Int8 c: *ev.buffer) {
-				log += char(c);
-			}
-		});
+			callback(buffer);
+		}
 
-		clients.push_back(socket);
-	}
+		Resources()
+		{ }
+
+	public:
+		static Resources& getInstance() {
+			static Resources res;
+			return  res;
+		}
+
+		void completeRemainingTasks() {
+			for(std::thread& t: this->threads)
+				t.join();
+
+			this->threads.clear();
+		}
+
+		void requestBuffer(const std::string& path, Callback<const buffer_t&> callback) {
+			threads.emplace_back(worker, std::async(std::launch::deferred, requestBuffer_impl, path, callback));
+		}
+
+		void requestStream(const std::string& path, Callback<sf::MemoryInputStream&> callback) {
+			this->requestBuffer(path, [callback](const buffer_t& buffer) {
+				sf::MemoryInputStream stream;
+				stream.open(buffer.data(), buffer.size());
+
+				callback(stream);
+			});
+		}
+	};
 }
 
 int main()
 {
-	std::vector<sfcb::sharedTcpSocket> clients;
-	std::srand(std::time(nullptr));
+	sf::Clock c;
 
-	std::string log;
-	size_t oldSize = log.size();
+	auto& resources = sfcb::Resources::getInstance();
 
-	sfcb::TcpListener listener;
-	listener.setCallback(callbacks::onAccepted, std::ref(clients), std::ref(log));
-	listener.listen(3254);
+	for(auto i = 0u; i < 100; ++i)
+	resources.requestStream("engine.png", [i](sf::MemoryInputStream& stream) {
+		sf::Texture tex;
+		tex.loadFromStream(stream);
+		std::cout << "Ready " + std::to_string(i) << "!" << std::endl;
+	});
 
-	while(true) {
-		/* Handle listener callbacks */
-		listener.handleCallbacks();
-
-		/* Handle TCP callbacks */
-		sfcb::TcpSocket::handleCallbacks();
-
-		if(oldSize != log.size()) {
-			system("clear");
-			std::cout << log << std::flush;
-
-			oldSize = log.size();
-		}
-	}
+	resources.completeRemainingTasks();
+	std::cout << c.getElapsedTime().asSeconds() << std::endl;
 
 	return 0;
 }
