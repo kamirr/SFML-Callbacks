@@ -27,7 +27,7 @@ namespace sfcb {
 			m_func = [](callback_args_t ...) { };
 		}
 
-		inline void operator()(const callback_args_t ... callback_args) {
+		inline void operator()(const callback_args_t ... callback_args) const {
 			this->m_func(callback_args ...);
 		}
 	};
