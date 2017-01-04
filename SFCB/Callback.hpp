@@ -22,8 +22,7 @@ namespace sfcb {
 			this->set(func, args ...);
 		}
 
-		Callback()
-		{
+		Callback() {
 			m_func = [](callback_args_t ...) { };
 		}
 
