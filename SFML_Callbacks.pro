@@ -19,4 +19,6 @@ HEADERS += \
     SFCB/Window.hpp \
     SFCB/TcpSocket.hpp \
     SFCB/NetworkBase.hpp \
-    SFCB/TcpListener.hpp
+    SFCB/TcpListener.hpp \
+    SFCB/ConcurrentQueue.hpp \
+    SFCB/ResourceLoader.hpp
