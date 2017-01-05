@@ -8,6 +8,7 @@
 namespace sfcb {
 	typedef sf::Socket::Status SocketStatus;
 	typedef std::vector<sf::Int8> buffer_t;
+	typedef const buffer_t cbuffer_t;
 
 	class TcpSocket;
 
@@ -19,12 +20,12 @@ namespace sfcb {
 		} type;
 
 		union {
-			const buffer_t* buffer;
 			SocketStatus status;
 			TcpSocket* client;
+			cbuffer_t* buffer;
 		};
 
-		SocketEvent(const buffer_t& buffer) {
+		SocketEvent(cbuffer_t& buffer) {
 			this->type = Type::DataReceived;
 			this->buffer = &buffer;
 		}

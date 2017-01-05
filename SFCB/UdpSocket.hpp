@@ -41,7 +41,7 @@ namespace sfcb {
 			this->m_socket.unbind();
 		}
 
-		void send(const buffer_t& buffer, const sf::IpAddress &remoteAddress, unsigned short remotePort) {
+		void send(cbuffer_t& buffer, const sf::IpAddress &remoteAddress, unsigned short remotePort) {
 			auto status = this->m_socket.send(buffer.data(), buffer.size(), remoteAddress, remotePort);
 
 			if(status != SocketStatus::Done) {

@@ -15,7 +15,7 @@ namespace sfcb {
 	private:
 		struct Request {
 			std::string path;
-			Callback<const buffer_t&> callback;
+			Callback<cbuffer_t&> callback;
 		};
 
 		ConcurrentQueue<Request> m_requests;
@@ -51,7 +51,7 @@ namespace sfcb {
 			return res;
 		}
 
-		void requestBuffer(const std::string& path, Callback<const buffer_t&> callback) {
+		void requestBuffer(const std::string& path, Callback<cbuffer_t&> callback) {
 			if(this->m_asyncMode) {
 				this->m_requests.push({path, callback});
 			} else {
@@ -60,7 +60,7 @@ namespace sfcb {
 		}
 
 		void requestStream(const std::string& path, Callback<sf::MemoryInputStream&> callback) {
-			this->requestBuffer(path, [callback](const buffer_t& buffer) {
+			this->requestBuffer(path, [callback](cbuffer_t& buffer) {
 				sf::MemoryInputStream stream;
 				stream.open(buffer.data(), buffer.size());
 
