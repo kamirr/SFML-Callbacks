@@ -2,14 +2,10 @@
 #define NETWORK_HPP
 
 #include <SFML/Network/Socket.hpp>
-#include <SFML/Config.hpp>
-#include <vector>
+#include "Base.hpp"
 
 namespace sfcb {
 	typedef sf::Socket::Status SocketStatus;
-	typedef std::vector<sf::Int8> buffer_t;
-	typedef const buffer_t cbuffer_t;
-
 	class TcpSocket;
 
 	struct SocketEvent {
