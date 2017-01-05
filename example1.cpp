@@ -26,9 +26,14 @@ namespace callbacks {
 			static_cast<sf::Uint8>(double(ev.mouseMove.x) / 300. * 235. + 20),
 			20});
 	}
+}
+
+struct KeyLogger {
+	std::vector<sf::Keyboard::Key> keys;
 
 	void onKeyPressed(sfcb::Window<sf::RenderWindow>& window, sf::Event ev, std::vector<sfcb::Context> contexts) {
 		std::cout << "Key pressed, SFML code: " << ev.key.code << std::endl;
+		this->keys.push_back(ev.key.code);
 
 		if(ev.key.code <= sf::Keyboard::Z) {
 			if(size_t(ev.key.code) >= contexts.size()) {
@@ -39,10 +44,12 @@ namespace callbacks {
 			}
 		}
 	}
-}
+};
 
 int main()
 {
+	KeyLogger logger;
+
 	/* Create window, acts just like window given in parameter */
 	sfcb::Window<sf::RenderWindow> app({300, 300}, "app");
 	app.setVerticalSyncEnabled(true);
@@ -61,8 +68,10 @@ int main()
 	app.setCallback(sf::Event::MouseMoved, contexts[0], callbacks::onMouseMoved1);
 	app.setCallback(sf::Event::MouseMoved, contexts[1], callbacks::onMouseMoved2);
 
-	/* Connect callback with additional parameters */
-	app.setCallback(sf::Event::KeyPressed, universal, callbacks::onKeyPressed, contexts);
+	/* Connect callback in class with additional parameters */
+	sfcb::Callback<sfcb::Window<sf::RenderWindow>&, sf::Event> callback(sfcb::wrapMemberFunction<std::vector<sfcb::Context>>(&KeyLogger::onKeyPressed, logger), contexts);
+
+	app.setCallback(sf::Event::KeyPressed, universal, callback);
 
 	/* Minimal main loop */
 	app.clear({20, 20, 20});
