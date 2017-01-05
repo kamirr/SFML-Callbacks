@@ -13,12 +13,13 @@
 namespace sfcb {
 	class ResourceLoader
 		: public sf::NonCopyable {
-	private:
+	public:
 		struct Request {
 			std::string path;
 			Callback<cbuffer_t&> callback;
 		};
 
+	private:
 		ConcurrentQueue<Request> m_requests;
 		std::vector<std::thread> m_threads;
 		bool m_asyncMode = true;
@@ -29,8 +30,7 @@ namespace sfcb {
 			}
 		}
 
-	protected:
-		static void requestBuffer_impl(Request req) {
+		static void requestBuffer_default_impl(Request req) {
 			std::ifstream is(req.path);
 			is >> std::noskipws;
 
@@ -40,6 +40,9 @@ namespace sfcb {
 			req.callback(buffer);
 		}
 
+		static std::function<void(Request)> requestBuffer_impl;
+
+	protected:
 		ResourceLoader() {
 			for(auto i = 0u; i < std::thread::hardware_concurrency(); ++i) {
 				this->m_threads.emplace_back(&ResourceLoader::worker, this);
@@ -81,7 +84,13 @@ namespace sfcb {
 
 			this->m_asyncMode = async;
 		}
+
+		void setDataLoadingFunc(std::function<void(Request)> func) {
+			this->requestBuffer_impl = func;
+		}
 	};
+
+	std::function<void(ResourceLoader::Request)> ResourceLoader::requestBuffer_impl = &ResourceLoader::requestBuffer_default_impl;
 }
 
 #endif // RESOURCELOADER_HPP
