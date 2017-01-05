@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include "SFCB/ConcurrentQueue.hpp"
+#include "SFCB/ConcurrentMap.hpp"
 #include "SFCB/Callback.hpp"
 #include "SFCB/Base.hpp"
 
@@ -20,6 +21,8 @@ namespace sfcb {
 		};
 
 	private:
+		ConcurrentMap<std::string, buffer_t> data;
+
 		ConcurrentQueue<Request> m_requests;
 		std::vector<std::thread> m_threads;
 		bool m_asyncMode = true;
@@ -30,17 +33,20 @@ namespace sfcb {
 			}
 		}
 
-		static void requestBuffer_default_impl(Request req) {
+		void requestBuffer_impl(Request req) {
+			if(data.hasKey(req.path)) {
+				req.callback(data.get(req.path));
+				return;
+			}
+
 			std::ifstream is(req.path);
 			is >> std::noskipws;
 
 			std::istream_iterator<char> start(is), end;
-			buffer_t buffer(start, end);
+			data.emplace(req.path, start, end);
 
-			req.callback(buffer);
+			req.callback(data.get(req.path));
 		}
-
-		static std::function<void(Request)> requestBuffer_impl;
 
 	protected:
 		ResourceLoader() {
@@ -84,13 +90,7 @@ namespace sfcb {
 
 			this->m_asyncMode = async;
 		}
-
-		void setDataLoadingFunc(std::function<void(Request)> func) {
-			this->requestBuffer_impl = func;
-		}
 	};
-
-	std::function<void(ResourceLoader::Request)> ResourceLoader::requestBuffer_impl = &ResourceLoader::requestBuffer_default_impl;
 }
 
 #endif // RESOURCELOADER_HPP
