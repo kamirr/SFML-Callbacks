@@ -21,4 +21,5 @@ HEADERS += \
     SFCB/NetworkBase.hpp \
     SFCB/TcpListener.hpp \
     SFCB/ConcurrentQueue.hpp \
-    SFCB/ResourceLoader.hpp
+    SFCB/ResourceLoader.hpp \
+    SFCB/Base.hpp
