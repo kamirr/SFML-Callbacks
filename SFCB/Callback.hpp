@@ -30,6 +30,13 @@ namespace sfcb {
 			this->m_func(callback_args ...);
 		}
 	};
+
+	template <class ... Ts, typename func_t, class Class>
+	Callback<Ts ...> wrapMemberFunction(func_t func, Class& obj) {
+		return [func, &obj](Ts ... args) {
+			std::mem_fn(func)(obj, args ...);
+		};
+	};
 }
 
 #endif // CALLBACK_HPP
