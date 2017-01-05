@@ -2,12 +2,13 @@
 #define RESOURCELOADER_HPP
 
 #include <SFML/System/MemoryInputStream.hpp>
+#include <SFML/System/NonCopyable.hpp>
 #include <iterator>
 #include <fstream>
 
 #include "SFCB/ConcurrentQueue.hpp"
-#include "SFCB/NetworkBase.hpp"
 #include "SFCB/Callback.hpp"
+#include "SFCB/Base.hpp"
 
 namespace sfcb {
 	class ResourceLoader
