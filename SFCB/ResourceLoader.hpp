@@ -74,6 +74,10 @@ namespace sfcb {
 		}
 
 		void enableAsync(bool async) {
+			if(this->m_requests.size()) {
+				throw std::logic_error("Can't change async mode with remaining unfinished tasks");
+			}
+
 			this->m_asyncMode = async;
 		}
 	};
