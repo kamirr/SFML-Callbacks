@@ -40,7 +40,7 @@ namespace sfcb {
 		}
 
 		ResourceLoader() {
-			for(auto i = 0u; i < std::thread::hardware_concurrency() - 3; ++i) {
+			for(auto i = 0u; i < std::thread::hardware_concurrency(); ++i) {
 				this->m_threads.emplace_back(worker, this);
 			}
 		}
