@@ -10,6 +10,7 @@ int main()
 {
 	sf::Clock c;
 	sfcb::ResourceLoader& loader = sfcb::ResourceLoader::getInstance();
+	loader.enableAsync(true);
 
 	for(auto i = 0u; i < 100; ++i) {
 		loader.requestStream("sierra.jpg", [i](sf::InputStream& stream) {
