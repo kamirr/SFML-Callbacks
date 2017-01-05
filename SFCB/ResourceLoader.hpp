@@ -22,26 +22,26 @@ namespace sfcb {
 		std::vector<std::thread> m_threads;
 		bool m_asyncMode = true;
 
-		static void requestBuffer_impl(const std::string path, Callback<const buffer_t&> callback) {
-			std::ifstream is(path);
+		void worker() {
+			while (true) {
+				requestBuffer_impl(this->m_requests.pop());
+			}
+		}
+
+	protected:
+		static void requestBuffer_impl(Request req) {
+			std::ifstream is(req.path);
 			is >> std::noskipws;
 
 			std::istream_iterator<char> start(is), end;
 			buffer_t buffer(start, end);
 
-			callback(buffer);
-		}
-
-		static void worker(ResourceLoader* ptr) {
-			while (true) {
-				const auto req =  ptr->m_requests.pop();
-				requestBuffer_impl(req.path, req.callback);
-			}
+			req.callback(buffer);
 		}
 
 		ResourceLoader() {
 			for(auto i = 0u; i < std::thread::hardware_concurrency(); ++i) {
-				this->m_threads.emplace_back(worker, this);
+				this->m_threads.emplace_back(&ResourceLoader::worker, this);
 			}
 		}
 
@@ -55,7 +55,7 @@ namespace sfcb {
 			if(this->m_asyncMode) {
 				this->m_requests.push({path, callback});
 			} else {
-				this->requestBuffer_impl(path, callback);
+				this->requestBuffer_impl({path, callback});
 			}
 		}
 

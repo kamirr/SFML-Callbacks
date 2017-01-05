@@ -21,6 +21,7 @@ int main()
 	std::cout << "Started all threads!" << std::endl;
 
 	loader.completeRemainingTasks();
+
 	std::cout << c.getElapsedTime().asSeconds() << std::endl;
 
 	return 0;
