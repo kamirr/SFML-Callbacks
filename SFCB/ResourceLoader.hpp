@@ -20,29 +20,41 @@ namespace sfcb {
 	class ResourceLoader
 		: public sf::NonCopyable {
 	private:
+		ConcurrentMap<size_t, std::string> currentlyProcessing;
 		ConcurrentMap<std::string, buffer_t> data;
 
 		ConcurrentQueue<ResourceRequest> m_requests;
 		std::vector<std::thread> m_threads;
 		bool m_asyncMode = true;
 
-		void worker() {
+		void worker(size_t id) {
 			while (true) {
-				requestBuffer_impl(this->m_requests.pop());
+				requestBuffer_impl(this->m_requests.pop(), id);
 			}
 		}
 
-		void requestBuffer_impl(ResourceRequest req) {
+		void requestBuffer_impl(ResourceRequest req, size_t id) {
 			if(data.hasKey(req.path)) {
 				req.callback(data.get(req.path));
 				return;
 			}
+
+			for(auto i = 0u; i < std::thread::hardware_concurrency(); ++i) {
+				if(currentlyProcessing.get(i) == req.path) {
+					m_requests.push(req);
+					return;
+				}
+			}
+
+			currentlyProcessing.set(id, req.path);
 
 			std::ifstream is(req.path);
 			is >> std::noskipws;
 
 			std::istream_iterator<char> start(is), end;
 			data.emplace(req.path, start, end);
+
+			currentlyProcessing.set(id, "{none}");
 
 			req.callback(data.get(req.path));
 		}
@@ -54,7 +66,8 @@ namespace sfcb {
 			}
 
 			for(auto i = 0u; i < std::thread::hardware_concurrency(); ++i) {
-				this->m_threads.emplace_back(&ResourceLoader::worker, this);
+				this->m_threads.emplace_back(&ResourceLoader::worker, this, i);
+				currentlyProcessing.set(i, "{none}");
 			}
 		}
 
@@ -68,7 +81,7 @@ namespace sfcb {
 			if(this->m_asyncMode) {
 				this->m_requests.push({path, callback});
 			} else {
-				this->requestBuffer_impl({path, callback});
+				this->requestBuffer_impl({path, callback}, 0);
 			}
 		}
 
