@@ -69,7 +69,10 @@ int main()
 	app.setCallback(sf::Event::MouseMoved, contexts[1], callbacks::onMouseMoved2);
 
 	/* Connect callback in class with additional parameters */
-	sfcb::Callback<sfcb::Window<sf::RenderWindow>&, sf::Event> callback(sfcb::wrapMemberFunction<std::vector<sfcb::Context>>(&KeyLogger::onKeyPressed, logger), contexts);
+	auto wrapper = [&logger](sfcb::Window<sf::RenderWindow>& window, sf::Event ev, std::vector<sfcb::Context> contexts) {
+		logger.onKeyPressed(window, ev, contexts);
+	};
+	sfcb::Callback<sfcb::Window<sf::RenderWindow>&, sf::Event> callback(wrapper, contexts);
 
 	app.setCallback(sf::Event::KeyPressed, universal, callback);
 
