@@ -12,18 +12,17 @@
 #include "SFCB/Base.hpp"
 
 namespace sfcb {
+	struct ResourceRequest {
+		std::string path;
+		Callback<cbuffer_t&> callback;
+	};
+
 	class ResourceLoader
 		: public sf::NonCopyable {
-	public:
-		struct Request {
-			std::string path;
-			Callback<cbuffer_t&> callback;
-		};
-
 	private:
 		ConcurrentMap<std::string, buffer_t> data;
 
-		ConcurrentQueue<Request> m_requests;
+		ConcurrentQueue<ResourceRequest> m_requests;
 		std::vector<std::thread> m_threads;
 		bool m_asyncMode = true;
 
@@ -33,7 +32,7 @@ namespace sfcb {
 			}
 		}
 
-		void requestBuffer_impl(Request req) {
+		void requestBuffer_impl(ResourceRequest req) {
 			if(data.hasKey(req.path)) {
 				req.callback(data.get(req.path));
 				return;
@@ -50,6 +49,10 @@ namespace sfcb {
 
 	protected:
 		ResourceLoader() {
+			if(std::thread::hardware_concurrency() == 1) {
+				this->enableAsync(false);
+			}
+
 			for(auto i = 0u; i < std::thread::hardware_concurrency(); ++i) {
 				this->m_threads.emplace_back(&ResourceLoader::worker, this);
 			}
